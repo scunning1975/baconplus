@@ -470,15 +470,33 @@ function renderWeightCurve(l, bw) {
              range: [wMin - pad, wMax + pad],
              color: PAL.deepNavy, gridcolor: "#E8E3D8", zerolinecolor: PAL.deepNavy, zerolinewidth: 1 },
     shapes: [
+      // Subtle grey shading of the extrapolation regions (outside the support)
+      { type: "rect", x0: -0.01, x1: d_L, y0: wMin - pad, y1: wMax + pad,
+        fillcolor: "rgba(108,117,125,0.10)", line: { width: 0 }, layer: "below" },
+      { type: "rect", x0: d_U,   x1: 0.62, y0: wMin - pad, y1: wMax + pad,
+        fillcolor: "rgba(108,117,125,0.10)", line: { width: 0 }, layer: "below" },
+      // Support bounds
+      { type: "line", x0: d_L, x1: d_L, y0: wMin - pad, y1: wMax + pad,
+        line: { color: PAL.warmGray, width: 1, dash: "dash" } },
+      { type: "line", x0: d_U, x1: d_U, y0: wMin - pad, y1: wMax + pad,
+        line: { color: PAL.warmGray, width: 1, dash: "dash" } },
+      // E[D] sign-flip rule
       { type: "line", x0: E_D, x1: E_D, y0: wMin - pad, y1: wMax + pad,
         line: { color: PAL.warmOrange, width: 1.4, dash: "dot" } },
+      // Chosen l
       { type: "line", x0: l, x1: l, y0: wMin - pad, y1: wMax + pad,
         line: { color: PAL.deepNavy, width: 1 } }
     ],
     annotations: [
       { x: E_D, y: wMax + pad, xanchor: "left", yanchor: "top",
         text: "&nbsp;sign flip at E[D]", font: { color: PAL.warmOrange, size: 11 },
-        showarrow: false }
+        showarrow: false },
+      { x: d_L, y: wMin - pad, xanchor: "left", yanchor: "bottom",
+        text: "&nbsp;d<sub>L</sub> = " + f3(d_L),
+        font: { color: PAL.warmGray, size: 10 }, showarrow: false },
+      { x: d_U, y: wMin - pad, xanchor: "right", yanchor: "bottom",
+        text: "d<sub>U</sub> = " + f3(d_U) + "&nbsp;",
+        font: { color: PAL.warmGray, size: 10 }, showarrow: false }
     ]
   };
   Plotly.react("plot-weight", traces, layout, { displayModeBar: false, responsive: true });
