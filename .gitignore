@@ -1,0 +1,17 @@
+# R
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# Misc
+*.log
+*.tmp

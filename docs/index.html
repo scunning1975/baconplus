@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CBS TWFE decomposition weights</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+  :root {
+    --deep-navy:   #2E4057;
+    --teal:        #048A81;
+    --warm-orange: #E85D04;
+    --gold:        #D4A03A;
+    --cream:       #FBF8F1;
+    --warm-gray:   #6C757D;
+    --teal-tint:   #D7EDEB;
+    --orange-tint: #FCE0CC;
+    --gold-tint:   #F4E8C4;
+    --border:      #E8E3D8;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--cream);
+    color: var(--deep-navy);
+  }
+  header {
+    padding: 18px 22px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  header h1 {
+    margin: 0; font-size: 22px; font-weight: 700;
+    color: var(--deep-navy);
+  }
+  header p {
+    margin: 4px 0 0; font-size: 13.5px; color: var(--warm-gray);
+    max-width: 960px;
+  }
+  nav.tabs {
+    display: flex; gap: 2px;
+    padding: 10px 22px 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--cream);
+  }
+  nav.tabs button {
+    font: inherit;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 10px 16px;
+    color: var(--warm-gray);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  nav.tabs button:hover { color: var(--deep-navy); }
+  nav.tabs button.active {
+    color: var(--deep-navy);
+    border-bottom-color: var(--teal);
+    font-weight: 700;
+  }
+  .panel { display: none; padding: 20px 22px; }
+  .panel.active { display: block; }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 760px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+
+  aside {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    height: fit-content;
+  }
+  aside label {
+    display: block;
+    margin: 12px 0 4px;
+    color: var(--deep-navy);
+    font-weight: 600;
+    font-size: 13px;
+  }
+  aside output {
+    display: inline-block;
+    color: var(--warm-orange);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  aside input[type=range] {
+    width: 100%;
+    accent-color: var(--teal);
+  }
+  aside hr {
+    border: none; border-top: 1px solid var(--border);
+    margin: 14px 0 8px;
+  }
+  .atom-box {
+    border-left: 4px solid var(--gold);
+    padding: 8px 10px;
+    margin-top: 6px;
+    background: var(--cream);
+  }
+  .atom-label { font-size: 11px; color: var(--warm-gray); font-weight: 600; text-transform: uppercase; }
+  .atom-formula { font-size: 14px; margin: 4px 0; color: var(--deep-navy); }
+  .atom-value { font-size: 22px; font-weight: 700; color: var(--warm-orange); }
+  .benchmark {
+    font-size: 11.5px;
+    color: var(--warm-gray);
+    font-style: italic;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border);
+  }
+
+  .main-panel { min-width: 0; }
+  .formula-strip {
+    background: var(--teal-tint);
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-size: 15px;
+    margin-bottom: 14px;
+    color: var(--deep-navy);
+  }
+  h4 { margin: 16px 0 8px; font-size: 14px; color: var(--deep-navy); }
+  .ingredients-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+  }
+  @media (max-width: 760px) { .ingredients-grid { grid-template-columns: repeat(3, 1fr); } }
+  .ingredient-box {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 6px;
+    text-align: center;
+  }
+  .ingredient-name { color: var(--deep-navy); font-size: 12px; font-weight: 700; }
+  .ingredient-value { color: var(--warm-orange); font-size: 20px; font-weight: 700; line-height: 1.2; margin-top: 4px; font-variant-numeric: tabular-nums; }
+
+  .decomp {
+    background: #fff;
+    border-left: 4px solid var(--teal);
+    border-radius: 4px;
+    padding: 14px 18px;
+    margin: 14px 0 18px;
+    font-size: 16px;
+    color: var(--deep-navy);
+    overflow-x: auto;
+  }
+  .plots-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 900px) { .plots-row { grid-template-columns: 1fr; } }
+  .plot-card {
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px;
+  }
+
+  .coming-soon {
+    background: #fff;
+    border: 1px dashed #C8CBCF;
+    border-radius: 8px;
+    padding: 50px 26px;
+    text-align: center;
+    color: var(--warm-gray);
+  }
+  .coming-soon h3 { color: var(--deep-navy); margin: 0 0 8px; }
+  .coming-soon .formula { font-size: 18px; margin: 18px 0; color: var(--deep-navy); }
+
+  footer {
+    padding: 16px 22px 26px;
+    color: var(--warm-gray);
+    font-size: 12px;
+    border-top: 1px solid var(--border);
+    margin-top: 20px;
+  }
+  footer a { color: var(--teal); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>CBS TWFE decomposition weights</h1>
+  <p>Pick a decomposition from <em>Table 1</em> of Callaway, Goodman-Bacon &amp; Sant'Anna (v4). Dose distribution: 155 Chinese industries a la Lu &amp; Yu (2015) — ~30% at D=0, right-skewed positive doses up to 0.60.</p>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-tab="level">Level</button>
+  <button class="tab-btn" data-tab="scaled_level">Scaled level</button>
+  <button class="tab-btn" data-tab="acrt">Causal response</button>
+  <button class="tab-btn" data-tab="twobytwo">Scaled 2&times;2</button>
+</nav>
+
+<!-- ========= LEVEL (live) ========= -->
+<section class="panel active" id="panel-level">
+  <div class="layout">
+    <aside>
+      <label>Dose <em>l</em>: <output id="out-l">0.100</output></label>
+      <input type="range" id="slider-l" min="0.005" max="0.600" step="0.005" value="0.100">
+
+      <label>Kernel bandwidth: <output id="out-bw">0.025</output></label>
+      <input type="range" id="slider-bw" min="0.005" max="0.100" step="0.005" value="0.025">
+
+      <hr>
+      <div class="atom-box">
+        <div class="atom-label">Atom at D = 0 (static)</div>
+        <div class="atom-formula">$w^{\text{lev}}_{0} = \dfrac{-E[D]\cdot P(D=0)}{\text{Var}(D)}$</div>
+        <div class="atom-value" id="atom-value">&mdash;</div>
+      </div>
+
+      <div class="benchmark">
+        Deck benchmark (slide 19): <br>
+        <strong>$w^{\text{lev}}(0.10) = -6.65$</strong> at bw = 0.025.
+      </div>
+    </aside>
+
+    <div class="main-panel">
+      <div class="formula-strip">
+        Level weight: &nbsp; $w^{\text{lev}}(l) = \dfrac{(l - E[D])\cdot f_D(l)}{\text{Var}(D)}$
+      </div>
+
+      <h4>Six ingredients</h4>
+      <div class="ingredients-grid">
+        <div class="ingredient-box"><div class="ingredient-name">$E[D]$</div><div class="ingredient-value" id="v-ED">&mdash;</div></div>
+        <div class="ingredient-box"><div class="ingredient-name">$\text{Var}(D)$</div><div class="ingredient-value" id="v-VarD">&mdash;</div></div>
+        <div class="ingredient-box"><div class="ingredient-name">$P(D=0)$</div><div class="ingredient-value" id="v-P0">&mdash;</div></div>
+        <div class="ingredient-box"><div class="ingredient-name">$d_L$</div><div class="ingredient-value" id="v-dL">&mdash;</div></div>
+        <div class="ingredient-box"><div class="ingredient-name">$d_U$</div><div class="ingredient-value" id="v-dU">&mdash;</div></div>
+        <div class="ingredient-box"><div class="ingredient-name">$f_D(l)$</div><div class="ingredient-value" id="v-fD">&mdash;</div></div>
+      </div>
+
+      <h4>Plug in the numbers at the chosen <em>l</em></h4>
+      <div class="decomp" id="decomp-text">&mdash;</div>
+
+      <div class="plots-row">
+        <div class="plot-card"><div id="plot-hist"   style="width:100%;height:300px;"></div></div>
+        <div class="plot-card"><div id="plot-weight" style="width:100%;height:300px;"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========= SCALED LEVEL (placeholder) ========= -->
+<section class="panel" id="panel-scaled_level">
+  <div class="coming-soon">
+    <h3>Coming soon</h3>
+    <div class="formula">$w^{s}(l) = \dfrac{l \cdot (l - E[D]) \cdot f_D(l)}{\text{Var}(D)}$</div>
+    <p>Integrates to 1 but still has negative weights below the mean.</p>
+  </div>
+</section>
+
+<!-- ========= CAUSAL RESPONSE (placeholder) ========= -->
+<section class="panel" id="panel-acrt">
+  <div class="coming-soon">
+    <h3>Coming soon</h3>
+    <div class="formula">$w^{\text{acrt}}(l) = \dfrac{(E[D \mid D \ge l] - E[D])\cdot P(D \ge l)}{\text{Var}(D)}$</div>
+    <p>Non-negative and integrates to 1 &mdash; but not the dose density.</p>
+  </div>
+</section>
+
+<!-- ========= SCALED 2x2 (placeholder) ========= -->
+<section class="panel" id="panel-twobytwo">
+  <div class="coming-soon">
+    <h3>Coming soon</h3>
+    <div class="formula">$w^{2\times 2}(l, h) = \dfrac{(h - l)^{2} \cdot f_D(h) \cdot f_D(l)}{\text{Var}(D)}, \quad h > l$</div>
+    <p>Heatmap over the triangular region.</p>
+  </div>
+</section>
+
+<footer>
+  Weight formulas: Callaway, Goodman-Bacon &amp; Sant'Anna, "Difference-in-Differences with a Continuous Treatment," v4 (Dec 2025), Table 1.
+  Simulated dose distribution seeded to match the companion teaching deck.
+</footer>
+
+<script>
+// ============================================================================
+// Dose distribution — 155 industries, generated in R with set.seed(2015),
+// rbinom(155, 1, 0.30) for the atom at zero, and
+// pmin(rgamma(155, 2.5, 10.5), 0.60) for the positive support.
+// Same values the deck uses, so w_lev(0.10) reproduces -6.65.
+// ============================================================================
+const DOSE = [0.295914,0.000000,0.552382,0.080296,0.310805,0.188447,0.106996,0.089497,0.262122,0.211062,0.000000,0.048110,0.389160,0.138540,0.000000,0.000000,0.108286,0.085953,0.000000,0.318466,0.241852,0.513018,0.027231,0.136024,0.000000,0.000000,0.000000,0.000000,0.148180,0.073424,0.000000,0.097298,0.198185,0.000000,0.246891,0.268380,0.307856,0.106260,0.060105,0.241635,0.420681,0.222203,0.166747,0.385437,0.244460,0.223311,0.227744,0.110488,0.345238,0.000000,0.228854,0.267547,0.249200,0.187052,0.000000,0.266816,0.508656,0.527493,0.000000,0.000000,0.000000,0.313512,0.000000,0.051655,0.235134,0.073159,0.209652,0.423246,0.190072,0.000000,0.254358,0.086519,0.000000,0.301546,0.000000,0.000000,0.378423,0.000000,0.202511,0.205054,0.000000,0.233204,0.253534,0.159813,0.386195,0.103872,0.255165,0.350066,0.315670,0.135284,0.168782,0.530989,0.382326,0.209639,0.000000,0.295944,0.152315,0.000000,0.000000,0.319451,0.000000,0.147159,0.000000,0.271636,0.000000,0.067092,0.133427,0.000000,0.116153,0.158252,0.000000,0.155285,0.000000,0.246534,0.000000,0.298169,0.297538,0.000000,0.000000,0.000000,0.332077,0.120393,0.000000,0.205003,0.000000,0.000000,0.237222,0.133710,0.162311,0.000000,0.081455,0.116060,0.417206,0.237279,0.187519,0.412493,0.310504,0.372495,0.213196,0.079856,0.093308,0.000000,0.000000,0.000000,0.000000,0.178912,0.260267,0.241815,0.263742,0.246829,0.260474,0.248078,0.098645,0.084715,0.254061];
+
+// === Palette (matches the deck) ===
+const PAL = {
+  deepNavy:   "#2E4057",
+  teal:       "#048A81",
+  warmOrange: "#E85D04",
+  gold:       "#D4A03A",
+  cream:      "#FBF8F1",
+  warmGray:   "#6C757D",
+  tealTint:   "#D7EDEB",
+  orangeTint: "#FCE0CC"
+};
+
+// ============================================================================
+// Statistics — all match the R implementation in decks/.../scripts/00_setup.R
+// ============================================================================
+const n = DOSE.length;
+const sum = arr => arr.reduce((a,b) => a+b, 0);
+const mean = arr => sum(arr) / arr.length;
+
+const E_D = mean(DOSE);
+const Var_D = mean(DOSE.map(d => (d - E_D) * (d - E_D)));  // population variance
+const P_D0 = DOSE.filter(d => d === 0).length / n;
+const POS = DOSE.filter(d => d > 0);
+const d_L = Math.min(...POS);
+const d_U = Math.max(...POS);
+
+// Gaussian kernel density at point l with bandwidth bw
+const dnorm = z => Math.exp(-0.5 * z * z) / Math.sqrt(2 * Math.PI);
+function f_D(l, bw) {
+  let s = 0;
+  for (let i = 0; i < n; i++) {
+    s += dnorm((DOSE[i] - l) / bw) / bw;
+  }
+  return s / n;
+}
+
+const w_lev_0 = -E_D * P_D0 / Var_D;  // static atom weight
+
+// ============================================================================
+// Utility: format numbers with R-like precision
+// ============================================================================
+const f3 = x => x.toFixed(3);
+const f4 = x => x.toFixed(4);
+
+// ============================================================================
+// Tabs
+// ============================================================================
+document.querySelectorAll("nav.tabs .tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("nav.tabs .tab-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("panel-" + btn.dataset.tab).classList.add("active");
+    if (btn.dataset.tab === "level") {
+      // Plotly needs a resize hint when the panel becomes visible
+      Plotly.Plots.resize("plot-hist");
+      Plotly.Plots.resize("plot-weight");
+    }
+  });
+});
+
+// ============================================================================
+// Level tab — reactive updates
+// ============================================================================
+const slL   = document.getElementById("slider-l");
+const slBW  = document.getElementById("slider-bw");
+const outL  = document.getElementById("out-l");
+const outBW = document.getElementById("out-bw");
+
+// Static ingredient cells
+document.getElementById("v-ED").textContent   = f3(E_D);
+document.getElementById("v-VarD").textContent = f4(Var_D);
+document.getElementById("v-P0").textContent   = f3(P_D0);
+document.getElementById("v-dL").textContent   = f3(d_L);
+document.getElementById("v-dU").textContent   = f3(d_U);
+document.getElementById("atom-value").textContent = f3(w_lev_0);
+
+// Pre-built grid for the weight curve
+const GRID = [];
+for (let i = 0; i < 400; i++) GRID.push(0.005 + (0.600 - 0.005) * i / 399);
+
+function renderDecomp(l, bw) {
+  const fd  = f_D(l, bw);
+  const dev = l - E_D;
+  const w   = dev * fd / Var_D;
+  const target = document.getElementById("decomp-text");
+  target.innerHTML = "$$w^{\\text{lev}}(" + f3(l) + ") = "
+    + "\\frac{(" + f3(l) + " - " + f3(E_D) + ")\\cdot " + f3(fd) + "}{" + f4(Var_D) + "} = "
+    + "\\frac{(" + f3(dev) + ")(" + f3(fd) + ")}{" + f4(Var_D) + "} = "
+    + "\\mathbf{" + f3(w) + "}$$";
+  if (window.renderMathInElement) {
+    renderMathInElement(target, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+  }
+  document.getElementById("v-fD").textContent = f3(fd);
+}
+
+function renderHistogram(l) {
+  const bins = [];
+  const binW = 0.02;
+  for (let edge = 0; edge < 0.62; edge += binW) {
+    const count = DOSE.filter(d => d >= edge && d < edge + binW).length;
+    bins.push({x: edge + binW / 2, y: count});
+  }
+  const traces = [{
+    type: "bar",
+    x: bins.map(b => b.x),
+    y: bins.map(b => b.y),
+    width: binW * 0.95,
+    marker: { color: PAL.tealTint, line: { color: PAL.deepNavy, width: 0.6 } },
+    hovertemplate: "Dose %{x:.3f} &mdash; %{y} industries<extra></extra>"
+  }];
+  const maxY = Math.max(...bins.map(b => b.y));
+  const layout = {
+    title: { text: "Dose distribution (155 industries)", font: { color: PAL.deepNavy, size: 14 } },
+    paper_bgcolor: PAL.cream,
+    plot_bgcolor:  PAL.cream,
+    margin: { t: 40, b: 42, l: 48, r: 16 },
+    xaxis: { title: "Dose D", range: [-0.01, 0.62], color: PAL.deepNavy, gridcolor: "#E8E3D8" },
+    yaxis: { title: "Count", color: PAL.deepNavy, gridcolor: "#E8E3D8" },
+    shapes: [
+      { type: "line", x0: E_D, x1: E_D, y0: 0, y1: maxY * 1.08,
+        line: { color: PAL.deepNavy, width: 1, dash: "dot" } },
+      { type: "line", x0: l, x1: l, y0: 0, y1: maxY * 1.08,
+        line: { color: PAL.warmOrange, width: 2.2 } }
+    ],
+    annotations: [
+      { x: E_D, y: maxY * 1.08, xanchor: "right", yanchor: "bottom",
+        text: "E[D] = " + f3(E_D), font: { color: PAL.deepNavy, style: "italic", size: 11 },
+        showarrow: false },
+      { x: l, y: maxY * 1.08, xanchor: "left", yanchor: "bottom",
+        text: "&nbsp;l = " + f3(l), font: { color: PAL.warmOrange, size: 12 },
+        showarrow: false }
+    ],
+    showlegend: false
+  };
+  Plotly.react("plot-hist", traces, layout, { displayModeBar: false, responsive: true });
+}
+
+function renderWeightCurve(l, bw) {
+  const w = GRID.map(g => (g - E_D) * f_D(g, bw) / Var_D);
+  const wPos = w.map(v => v >= 0 ? v : null);
+  const wNeg = w.map(v => v <  0 ? v : null);
+
+  const chosen_w = (l - E_D) * f_D(l, bw) / Var_D;
+
+  const traces = [
+    { type: "scatter", mode: "lines", x: GRID, y: wNeg,
+      line: { width: 0 }, fill: "tozeroy", fillcolor: PAL.orangeTint,
+      hoverinfo: "skip", showlegend: false },
+    { type: "scatter", mode: "lines", x: GRID, y: wPos,
+      line: { width: 0 }, fill: "tozeroy", fillcolor: PAL.tealTint,
+      hoverinfo: "skip", showlegend: false },
+    { type: "scatter", mode: "lines", x: GRID, y: w,
+      line: { color: PAL.deepNavy, width: 2 },
+      hovertemplate: "l = %{x:.3f}<br>w<sup>lev</sup> = %{y:.3f}<extra></extra>",
+      showlegend: false },
+    { type: "scatter", mode: "markers", x: [l], y: [chosen_w],
+      marker: { color: PAL.warmOrange, size: 10 },
+      hovertemplate: "l = %{x:.3f}<br>w<sup>lev</sup> = %{y:.3f}<extra></extra>",
+      showlegend: false }
+  ];
+  const wMin = Math.min(...w);
+  const wMax = Math.max(...w);
+  const pad = 0.08 * (wMax - wMin);
+  const layout = {
+    title: { text: "Level weight  w<sup>lev</sup>(l)", font: { color: PAL.deepNavy, size: 14 } },
+    paper_bgcolor: PAL.cream,
+    plot_bgcolor:  PAL.cream,
+    margin: { t: 40, b: 42, l: 56, r: 16 },
+    xaxis: { title: "Dose l", range: [-0.01, 0.62], color: PAL.deepNavy, gridcolor: "#E8E3D8" },
+    yaxis: { title: "w<sup>lev</sup>(l)",
+             range: [wMin - pad, wMax + pad],
+             color: PAL.deepNavy, gridcolor: "#E8E3D8", zerolinecolor: PAL.deepNavy, zerolinewidth: 1 },
+    shapes: [
+      { type: "line", x0: E_D, x1: E_D, y0: wMin - pad, y1: wMax + pad,
+        line: { color: PAL.warmOrange, width: 1.4, dash: "dot" } },
+      { type: "line", x0: l, x1: l, y0: wMin - pad, y1: wMax + pad,
+        line: { color: PAL.deepNavy, width: 1 } }
+    ],
+    annotations: [
+      { x: E_D, y: wMax + pad, xanchor: "left", yanchor: "top",
+        text: "&nbsp;sign flip at E[D]", font: { color: PAL.warmOrange, size: 11 },
+        showarrow: false }
+    ]
+  };
+  Plotly.react("plot-weight", traces, layout, { displayModeBar: false, responsive: true });
+}
+
+function update() {
+  const l  = parseFloat(slL.value);
+  const bw = parseFloat(slBW.value);
+  outL.textContent  = f3(l);
+  outBW.textContent = f3(bw);
+  renderDecomp(l, bw);
+  renderHistogram(l);
+  renderWeightCurve(l, bw);
+}
+
+slL.addEventListener("input", update);
+slBW.addEventListener("input", update);
+
+// Initial render (wait for KaTeX & Plotly to load, then trigger)
+window.addEventListener("load", () => {
+  update();
+});
+</script>
+
+</body>
+</html>
