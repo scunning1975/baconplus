@@ -290,7 +290,7 @@
       <!-- Sub-view B: the unit-level reconstruction ----------------------->
       <div class="subview" id="subview-scatter">
         <div class="formula-strip">
-          Per-unit weight &nbsp; $W_i = \dfrac{l_i - E[D]}{\sum_j (l_j - E[D])^{2}}$ &nbsp;&mdash;&nbsp; sums to zero across the 155 industries.
+          Per-unit weight &nbsp; $W_i = \dfrac{(l_i - E[D]) \cdot \tfrac{1}{n}}{\text{Var}(D)}$ &nbsp;&mdash;&nbsp; same shape as $w^{\text{lev}}(l)$, with $\tfrac{1}{n}$ as the empirical density in place of $f_D(l)$. Sums to zero across the 155 industries.
           <br>
           Simulated first differences: &nbsp; $\Delta Y_i = 0.10 + 2\, l_i - 1.5\, l_i^{2} + \varepsilon_i, \;\; \varepsilon_i \sim N(0, 0.10^{2})$.
           <br>
