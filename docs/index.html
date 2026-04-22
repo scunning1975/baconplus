@@ -171,6 +171,33 @@
     padding: 8px;
   }
 
+  /* Sub-tabs (within the Level tab) */
+  nav.subtabs {
+    display: flex; gap: 2px;
+    margin: 2px 0 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  nav.subtabs button {
+    font: inherit;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 7px 14px;
+    color: var(--warm-gray);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: -1px;
+  }
+  nav.subtabs button:hover { color: var(--deep-navy); }
+  nav.subtabs button.active {
+    color: var(--deep-navy);
+    border-bottom-color: var(--warm-orange);
+    font-weight: 700;
+  }
+  .subview { display: none; }
+  .subview.active { display: block; }
+
   .coming-soon {
     background: #fff;
     border: 1px dashed #C8CBCF;
@@ -230,43 +257,53 @@
     </aside>
 
     <div class="main-panel">
-      <div class="formula-strip">
-        Level weight: &nbsp; $w^{\text{lev}}(l) = \dfrac{(l - E[D])\cdot f_D(l)}{\text{Var}(D)}$
+      <nav class="subtabs">
+        <button class="subtab-btn active" data-subtab="curve">Weight curve</button>
+        <button class="subtab-btn"        data-subtab="scatter">Reconstruction (unit-level)</button>
+      </nav>
+
+      <!-- Sub-view A: the continuous formula view ------------------------->
+      <div class="subview active" id="subview-curve">
+        <div class="formula-strip">
+          Level weight: &nbsp; $w^{\text{lev}}(l) = \dfrac{(l - E[D])\cdot f_D(l)}{\text{Var}(D)}$
+        </div>
+
+        <h4>Six ingredients</h4>
+        <div class="ingredients-grid">
+          <div class="ingredient-box"><div class="ingredient-name">$E[D]$</div><div class="ingredient-value" id="v-ED">&mdash;</div></div>
+          <div class="ingredient-box"><div class="ingredient-name">$\text{Var}(D)$</div><div class="ingredient-value" id="v-VarD">&mdash;</div></div>
+          <div class="ingredient-box"><div class="ingredient-name">$P(D=0)$</div><div class="ingredient-value" id="v-P0">&mdash;</div></div>
+          <div class="ingredient-box"><div class="ingredient-name">$d_L$</div><div class="ingredient-value" id="v-dL">&mdash;</div></div>
+          <div class="ingredient-box"><div class="ingredient-name">$d_U$</div><div class="ingredient-value" id="v-dU">&mdash;</div></div>
+          <div class="ingredient-box"><div class="ingredient-name">$f_D(l)$</div><div class="ingredient-value" id="v-fD">&mdash;</div></div>
+        </div>
+
+        <h4>Plug in the numbers at the chosen <em>l</em></h4>
+        <div class="decomp" id="decomp-text">&mdash;</div>
+
+        <div class="plots-row">
+          <div class="plot-card"><div id="plot-hist"   style="width:100%;height:300px;"></div></div>
+          <div class="plot-card"><div id="plot-weight" style="width:100%;height:300px;"></div></div>
+        </div>
       </div>
 
-      <h4>Six ingredients</h4>
-      <div class="ingredients-grid">
-        <div class="ingredient-box"><div class="ingredient-name">$E[D]$</div><div class="ingredient-value" id="v-ED">&mdash;</div></div>
-        <div class="ingredient-box"><div class="ingredient-name">$\text{Var}(D)$</div><div class="ingredient-value" id="v-VarD">&mdash;</div></div>
-        <div class="ingredient-box"><div class="ingredient-name">$P(D=0)$</div><div class="ingredient-value" id="v-P0">&mdash;</div></div>
-        <div class="ingredient-box"><div class="ingredient-name">$d_L$</div><div class="ingredient-value" id="v-dL">&mdash;</div></div>
-        <div class="ingredient-box"><div class="ingredient-name">$d_U$</div><div class="ingredient-value" id="v-dU">&mdash;</div></div>
-        <div class="ingredient-box"><div class="ingredient-name">$f_D(l)$</div><div class="ingredient-value" id="v-fD">&mdash;</div></div>
-      </div>
-
-      <h4>Plug in the numbers at the chosen <em>l</em></h4>
-      <div class="decomp" id="decomp-text">&mdash;</div>
-
-      <div class="plots-row">
-        <div class="plot-card"><div id="plot-hist"   style="width:100%;height:300px;"></div></div>
-        <div class="plot-card"><div id="plot-weight" style="width:100%;height:300px;"></div></div>
-      </div>
-
-      <h4 style="margin-top: 28px;">Reconstructing &beta;<sup>twfe</sup> from the unit-level weights</h4>
-      <div class="formula-strip">
-        Per-unit weight &nbsp; $W_i = \dfrac{D_i - E[D]}{\sum_j (D_j - E[D])^{2}}$ &nbsp;&mdash;&nbsp; sums to zero across the 155 industries.
-        <br>
-        Simulated first differences: &nbsp; $\Delta Y_i = 0.10 + 2 D_i - 1.5\, D_i^{2} + \varepsilon_i, \;\; \varepsilon_i \sim N(0, 0.10^{2})$.
-        <br>
-        <strong>&beta;<sup>twfe</sup> = &Sigma;<sub>i</sub> W<sub>i</sub> &middot; &Delta;Y<sub>i</sub> = <span id="beta-val" style="color:#E85D04;">&mdash;</span></strong>
-        &nbsp;&mdash; identical to the OLS slope.
-      </div>
-      <p style="font-size:12.5px; color:#6C757D; margin:2px 0 10px 0;">
-        Drag the <em>l</em> slider: industries with $D_i$ within &plusmn;bw of your chosen <em>l</em> get highlighted in orange on both scatters below.
-      </p>
-      <div class="plots-row">
-        <div class="plot-card"><div id="plot-wdy" style="width:100%;height:340px;"></div></div>
-        <div class="plot-card"><div id="plot-ddy" style="width:100%;height:340px;"></div></div>
+      <!-- Sub-view B: the unit-level reconstruction ----------------------->
+      <div class="subview" id="subview-scatter">
+        <div class="formula-strip">
+          Per-unit weight &nbsp; $W_i = \dfrac{D_i - E[D]}{\sum_j (D_j - E[D])^{2}}$ &nbsp;&mdash;&nbsp; sums to zero across the 155 industries.
+          <br>
+          Simulated first differences: &nbsp; $\Delta Y_i = 0.10 + 2 D_i - 1.5\, D_i^{2} + \varepsilon_i, \;\; \varepsilon_i \sim N(0, 0.10^{2})$.
+          <br>
+          <strong>&beta;<sup>twfe</sup> = &Sigma;<sub>i</sub> W<sub>i</sub> &middot; &Delta;Y<sub>i</sub> = <span id="beta-val" style="color:#E85D04;">&mdash;</span></strong>
+          &nbsp;&mdash; identical to the OLS slope.
+        </div>
+        <p style="font-size:12.5px; color:#6C757D; margin:2px 0 10px 0;">
+          Drag the <em>l</em> slider: industries with $D_i$ within &plusmn;bw of your chosen <em>l</em> get highlighted in orange on both scatters below.
+        </p>
+        <div class="plots-row">
+          <div class="plot-card"><div id="plot-wdy" style="width:100%;height:340px;"></div></div>
+          <div class="plot-card"><div id="plot-ddy" style="width:100%;height:340px;"></div></div>
+        </div>
       </div>
     </div>
   </div>
@@ -389,6 +426,28 @@ document.querySelectorAll("nav.tabs .tab-btn").forEach(btn => {
       // Plotly needs a resize hint when the panel becomes visible
       Plotly.Plots.resize("plot-hist");
       Plotly.Plots.resize("plot-weight");
+      Plotly.Plots.resize("plot-wdy");
+      Plotly.Plots.resize("plot-ddy");
+    }
+  });
+});
+
+// ============================================================================
+// Sub-tabs inside the Level panel (Weight curve <-> Reconstruction)
+// ============================================================================
+document.querySelectorAll(".subtab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".subtab-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".subview").forEach(v => v.classList.remove("active"));
+    btn.classList.add("active");
+    const which = btn.dataset.subtab;  // "curve" or "scatter"
+    document.getElementById("subview-" + which).classList.add("active");
+    // Plotly plots in display:none divs do not size correctly; trigger a
+    // resize on whichever two just became visible.
+    if (which === "curve") {
+      Plotly.Plots.resize("plot-hist");
+      Plotly.Plots.resize("plot-weight");
+    } else {
       Plotly.Plots.resize("plot-wdy");
       Plotly.Plots.resize("plot-ddy");
     }
