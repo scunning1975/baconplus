@@ -290,15 +290,15 @@
       <!-- Sub-view B: the unit-level reconstruction ----------------------->
       <div class="subview" id="subview-scatter">
         <div class="formula-strip">
-          Per-unit weight &nbsp; $W_i = \dfrac{D_i - E[D]}{\sum_j (D_j - E[D])^{2}}$ &nbsp;&mdash;&nbsp; sums to zero across the 155 industries.
+          Per-unit weight &nbsp; $W_i = \dfrac{l_i - E[D]}{\sum_j (l_j - E[D])^{2}}$ &nbsp;&mdash;&nbsp; sums to zero across the 155 industries.
           <br>
-          Simulated first differences: &nbsp; $\Delta Y_i = 0.10 + 2 D_i - 1.5\, D_i^{2} + \varepsilon_i, \;\; \varepsilon_i \sim N(0, 0.10^{2})$.
+          Simulated first differences: &nbsp; $\Delta Y_i = 0.10 + 2\, l_i - 1.5\, l_i^{2} + \varepsilon_i, \;\; \varepsilon_i \sim N(0, 0.10^{2})$.
           <br>
           <strong>&beta;<sup>twfe</sup> = &Sigma;<sub>i</sub> W<sub>i</sub> &middot; &Delta;Y<sub>i</sub> = <span id="beta-val" style="color:#E85D04;">&mdash;</span></strong>
           &nbsp;&mdash; identical to the OLS slope.
         </div>
         <p style="font-size:12.5px; color:#6C757D; margin:2px 0 10px 0;">
-          Drag the <em>l</em> slider: industries with $D_i$ within &plusmn;bw of your chosen <em>l</em> get highlighted in orange on both scatters below.
+          Drag the <em>l</em> slider: industries with $l_i$ within &plusmn;bw of your chosen <em>l</em> get highlighted in orange on both scatters below.
         </p>
         <div class="plots-row">
           <div class="plot-card"><div id="plot-wdy" style="width:100%;height:340px;"></div></div>
@@ -390,12 +390,12 @@ const w_lev_0 = -E_D * P_D0 / Var_D;  // static atom weight
 
 // ============================================================================
 // Simulated first differences Delta Y_i (DGP matches code/R/twfe_reconstruction.R)
-//   seed 1984 in R; Delta Y_i = 0.10 + 2*D_i - 1.5*D_i^2 + N(0, 0.10^2)
+//   seed 1984 in R; Delta Y_i = 0.10 + 2*l_i - 1.5*l_i^2 + N(0, 0.10^2)
 // These 155 numbers are baked in so JS and R produce identical beta^twfe.
 // ============================================================================
 const DY = [0.601401,0.067698,0.810660,0.066307,0.672075,0.542475,0.351066,0.183706,0.468561,0.596901,0.128201,0.221541,0.734856,0.450683,0.101775,0.272399,0.311057,0.083268,0.112615,0.413426,0.620162,0.774229,0.088487,0.434634,0.098678,0.124752,0.109172,0.182228,0.304793,0.339561,-0.010759,0.133353,0.498038,0.195630,0.532115,0.443316,0.823984,0.266733,0.180649,0.520019,0.680851,0.550444,0.380826,0.514112,0.623413,0.590261,0.432009,0.417551,0.545040,0.210866,0.603482,0.464720,0.407823,0.303940,0.061972,0.370265,0.664390,0.655196,0.031054,0.098342,0.026270,0.644944,0.266590,0.166095,0.648986,0.210016,0.399370,0.614834,0.437368,0.189957,0.460832,0.154315,0.129982,0.511478,0.057870,0.073019,0.691543,0.061141,0.367009,0.398417,0.119510,0.541005,0.464975,0.236378,0.664560,0.408693,0.465459,0.528001,0.804279,0.332231,0.387027,0.680744,0.461328,0.570309,0.224352,0.634198,0.326242,0.024075,0.240496,0.454107,0.121202,0.248641,0.147468,0.459888,0.332278,0.164503,0.221934,0.098914,0.257610,0.366730,-0.025797,0.432472,0.064797,0.540766,0.084429,0.474971,0.409242,0.064107,0.224293,0.205707,0.588736,0.185151,0.195166,0.364525,0.098359,0.195598,0.573878,0.274780,0.355676,0.077147,0.179013,0.199058,0.671881,0.586175,0.432694,0.862631,0.556579,0.460251,0.367279,0.338917,0.342430,-0.066740,0.006557,0.112228,0.049486,0.465571,0.503285,0.544285,0.258958,0.670819,0.459277,0.594737,0.365813,0.343905,0.402236];
 
-// Per-unit level weights W_i = (D_i - D_bar) / sum_j (D_j - D_bar)^2
+// Per-unit level weights W_i = (l_i - E[D]) / sum_j (l_j - E[D])^2
 // Sum to zero, and beta^twfe = sum W_i * DY_i exactly (FWL identity).
 const SS_D = DOSE.reduce((s, d) => s + (d - E_D) * (d - E_D), 0);
 const W    = DOSE.map(d => (d - E_D) / SS_D);
@@ -502,7 +502,7 @@ function renderHistogram(l) {
     y: bins.map(b => b.y),
     width: binW * 0.95,
     marker: { color: PAL.tealTint, line: { color: PAL.deepNavy, width: 0.6 } },
-    hovertemplate: "Dose %{x:.3f} &mdash; %{y} industries<extra></extra>"
+    hovertemplate: "l = %{x:.3f} &mdash; %{y} industries<extra></extra>"
   }];
   const maxY = Math.max(...bins.map(b => b.y));
   const layout = {
@@ -510,7 +510,7 @@ function renderHistogram(l) {
     paper_bgcolor: PAL.cream,
     plot_bgcolor:  PAL.cream,
     margin: { t: 40, b: 42, l: 48, r: 16 },
-    xaxis: { title: "Dose D", range: [-0.01, 0.62], color: PAL.deepNavy, gridcolor: "#E8E3D8" },
+    xaxis: { title: "Dose l", range: [-0.01, 0.62], color: PAL.deepNavy, gridcolor: "#E8E3D8" },
     yaxis: { title: "Count", color: PAL.deepNavy, gridcolor: "#E8E3D8" },
     shapes: [
       { type: "line", x0: E_D, x1: E_D, y0: 0, y1: maxY * 1.08,
@@ -601,7 +601,7 @@ function renderWeightCurve(l, bw) {
 
 // ============================================================================
 // Scatter: W_i vs Delta Y_i (left scatter in the reconstruction section)
-// Highlights industries with D_i within +/- bw of the chosen l.
+// Highlights industries with l_i within +/- bw of the chosen l.
 // ============================================================================
 function renderWDYScatter(l, bw) {
   const hilite = DOSE.map(d => Math.abs(d - l) <= bw);
@@ -609,7 +609,7 @@ function renderWDYScatter(l, bw) {
   const opac   = hilite.map(h => h ? 0.95 : 0.55);
   const size   = hilite.map(h => h ? 11   : 7);
   const hov    = DOSE.map((d, i) =>
-    `D = ${d.toFixed(3)}<br>W<sub>i</sub> = ${W[i].toFixed(4)}<br>ΔY<sub>i</sub> = ${DY[i].toFixed(3)}<br>contribution = ${(W[i]*DY[i]).toFixed(4)}`
+    `l<sub>i</sub> = ${d.toFixed(3)}<br>W<sub>i</sub> = ${W[i].toFixed(4)}<br>ΔY<sub>i</sub> = ${DY[i].toFixed(3)}<br>contribution = ${(W[i]*DY[i]).toFixed(4)}`
   );
 
   const W_min = Math.min(...W), W_max = Math.max(...W);
@@ -653,7 +653,7 @@ function renderWDYScatter(l, bw) {
 }
 
 // ============================================================================
-// Scatter: D_i vs Delta Y_i with OLS line (right scatter)
+// Scatter: l_i vs Delta Y_i with OLS line (right scatter)
 // OLS slope == beta^twfe by FWL. Vertical lines at E[D] and at chosen l.
 // ============================================================================
 function renderDDYScatter(l, bw) {
@@ -667,7 +667,7 @@ function renderDDYScatter(l, bw) {
   const opac   = hilite.map(h => h ? 0.95 : 0.55);
   const size   = hilite.map(h => h ? 10   : 7);
   const hov    = DOSE.map((d, i) =>
-    `D = ${d.toFixed(3)}<br>W<sub>i</sub> = ${W[i].toFixed(4)}<br>ΔY<sub>i</sub> = ${DY[i].toFixed(3)}`
+    `l<sub>i</sub> = ${d.toFixed(3)}<br>W<sub>i</sub> = ${W[i].toFixed(4)}<br>ΔY<sub>i</sub> = ${DY[i].toFixed(3)}`
   );
 
   const DY_min = Math.min(...DY), DY_max = Math.max(...DY);
@@ -687,11 +687,11 @@ function renderDDYScatter(l, bw) {
   ];
 
   const layout = {
-    title: { text: `ΔY vs D — OLS slope = β<sup>twfe</sup> = ${beta_twfe.toFixed(3)}`,
+    title: { text: `ΔY vs l — OLS slope = β<sup>twfe</sup> = ${beta_twfe.toFixed(3)}`,
              font: { color: PAL.deepNavy, size: 14 } },
     paper_bgcolor: PAL.cream, plot_bgcolor: PAL.cream,
     margin: { t: 38, b: 46, l: 58, r: 16 },
-    xaxis: { title: "Dose D<sub>i</sub>", range: [-0.01, 0.62],
+    xaxis: { title: "Dose l<sub>i</sub>", range: [-0.01, 0.62],
              color: PAL.deepNavy, gridcolor: "#E8E3D8" },
     yaxis: { title: "ΔY<sub>i</sub>", range: [DY_min - DY_pad, DY_max + DY_pad],
              color: PAL.deepNavy, gridcolor: "#E8E3D8",
