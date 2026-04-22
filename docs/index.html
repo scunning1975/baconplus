@@ -171,6 +171,24 @@
     padding: 8px;
   }
 
+  /* Lay-person "what's the question this tab is asking?" banner */
+  .lay-question {
+    background: var(--orange-tint);
+    border-left: 3px solid var(--warm-orange);
+    border-radius: 0 4px 4px 0;
+    padding: 10px 14px;
+    font-size: 14.5px;
+    color: var(--deep-navy);
+    margin: 0 0 14px 0;
+    font-style: italic;
+    text-align: left;
+  }
+  .lay-question strong {
+    font-style: normal;
+    color: var(--warm-orange);
+    margin-right: 6px;
+  }
+
   /* Sub-tabs (within the Level tab) */
   nav.subtabs {
     display: flex; gap: 2px;
@@ -257,6 +275,10 @@
     </aside>
 
     <div class="main-panel">
+      <p class="lay-question">
+        <strong>The question:</strong>
+        What is the effect of dose <em>l</em>, compared to getting no treatment?
+      </p>
       <nav class="subtabs">
         <button class="subtab-btn active" data-subtab="curve">Weight curve</button>
         <button class="subtab-btn"        data-subtab="scatter">Reconstruction (unit-level)</button>
@@ -311,6 +333,10 @@
 
 <!-- ========= SCALED LEVEL (placeholder) ========= -->
 <section class="panel" id="panel-scaled_level">
+  <p class="lay-question">
+    <strong>The question:</strong>
+    What is the effect per unit of dose?
+  </p>
   <div class="coming-soon">
     <h3>Coming soon</h3>
     <div class="formula">$w^{s}(l) = \dfrac{l \cdot (l - E[D]) \cdot f_D(l)}{\text{Var}(D)}$</div>
@@ -320,6 +346,10 @@
 
 <!-- ========= CAUSAL RESPONSE (placeholder) ========= -->
 <section class="panel" id="panel-acrt">
+  <p class="lay-question">
+    <strong>The question:</strong>
+    What is the effect of a tiny bump in dose, evaluated at each dose <em>l</em>?
+  </p>
   <div class="coming-soon">
     <h3>Coming soon</h3>
     <div class="formula">$w^{\text{acrt}}(l) = \dfrac{(E[D \mid D \ge l] - E[D])\cdot P(D \ge l)}{\text{Var}(D)}$</div>
@@ -329,6 +359,10 @@
 
 <!-- ========= SCALED 2x2 (placeholder) ========= -->
 <section class="panel" id="panel-twobytwo">
+  <p class="lay-question">
+    <strong>The question:</strong>
+    What is the slope of outcome between any two dose groups &mdash; a lower dose <em>l</em> and a higher dose <em>h</em>?
+  </p>
   <div class="coming-soon">
     <h3>Coming soon</h3>
     <div class="formula">$w^{2\times 2}(l, h) = \dfrac{(h - l)^{2} \cdot f_D(h) \cdot f_D(l)}{\text{Var}(D)}, \quad h > l$</div>
